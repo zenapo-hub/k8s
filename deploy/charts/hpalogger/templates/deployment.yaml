@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hpalogger.fullname" . }}
+  labels:
+    {{- include "hpalogger.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "hpalogger.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hpalogger.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "hpalogger.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: controller
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "--metrics-bind-address={{ .Values.metrics.bindAddress }}"
+            - "--health-probe-bind-address={{ .Values.healthProbes.bindAddress }}"
+            {{- if .Values.leaderElection.enabled }}
+            - "--leader-elect"
+            {{- end }}
+          env:
+            - name: CACHE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: metrics
+              containerPort: {{ trimPrefix ":" .Values.metrics.bindAddress | default 8080 | int }}
+            - name: probes
+              containerPort: {{ trimPrefix ":" .Values.healthProbes.bindAddress | default 8081 | int }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: probes
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: probes
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

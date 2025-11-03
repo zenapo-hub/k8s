@@ -1,0 +1,10 @@
+apiVersion: ops.zvikanaparstek.dev/v1alpha1
+kind: HPAReplicaAlert
+metadata:
+  name: new-stress-server-alert
+  namespace: default
+spec:
+  targetRef:
+    apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    name: new-stress-server-hpa

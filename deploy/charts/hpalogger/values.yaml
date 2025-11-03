@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/zvikanaparstek/hpalogger
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+rbac:
+  create: true
+
+resources: {}
+
+nodeSelector: {}
+
+affinity: {}
+
+tolerations: []
+
+metrics:
+  bindAddress: ":8080"
+
+healthProbes:
+  bindAddress: ":8081"
+
+leaderElection:
+  enabled: true
+  leaseName: hpa-replica-alerts.ops.zvikanaparstek.dev
+
+log:
+  development: true
+
+imagePullSecrets: []
+
+fullnameOverride: ""
+nameOverride: ""

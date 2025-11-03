@@ -1,0 +1,53 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: hpareplicaalerts.ops.zvikanaparstek.dev
+spec:
+  group: ops.zvikanaparstek.dev
+  names:
+    kind: HPAReplicaAlert
+    listKind: HPAReplicaAlertList
+    plural: hpareplicaalerts
+    singular: hpareplicaalert
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - targetRef
+              properties:
+                targetRef:
+                  type: object
+                  required:
+                    - apiVersion
+                    - kind
+                    - name
+                  properties:
+                    apiVersion:
+                      type: string
+                    kind:
+                      type: string
+                      enum:
+                        - HorizontalPodAutoscaler
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+            status:
+              type: object
+              properties:
+                lastObservedReplicas:
+                  type: integer
+                  format: int32
+                lastTransitionTime:
+                  type: string
+                  format: date-time
+      subresources:
+        status: {}
