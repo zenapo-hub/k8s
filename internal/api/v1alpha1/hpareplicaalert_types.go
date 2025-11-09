@@ -13,8 +13,20 @@ type HPAReplicaAlertSpec struct {
 
 // HPAReplicaAlertStatus reports observed replica counts.
 type HPAReplicaAlertStatus struct {
-	LastObservedReplicas *int32       `json:"lastObservedReplicas,omitempty"`
-	LastTransitionTime   *metav1.Time `json:"lastTransitionTime,omitempty"`
+	LastObservedReplicas *int32         `json:"lastObservedReplicas,omitempty"`
+	LastTransitionTime   *metav1.Time   `json:"lastTransitionTime,omitempty"`
+	RecentEvents         []ScalingEvent `json:"recentEvents,omitempty"`
+}
+
+// ScalingEvent captures a single observed scaling change for the target HPA.
+type ScalingEvent struct {
+	RecordedAt       metav1.Time  `json:"recordedAt"`
+	PreviousReplicas *int32       `json:"previousReplicas,omitempty"`
+	CurrentReplicas  int32        `json:"currentReplicas"`
+	DesiredReplicas  int32        `json:"desiredReplicas"`
+	Direction        string       `json:"direction"`
+	LastScaleTime    *metav1.Time `json:"lastScaleTime,omitempty"`
+	ConditionSummary string       `json:"conditionSummary,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -72,6 +84,12 @@ func (in *HPAReplicaAlertStatus) DeepCopyInto(out *HPAReplicaAlertStatus) {
 	if in.LastTransitionTime != nil {
 		out.LastTransitionTime = in.LastTransitionTime.DeepCopy()
 	}
+	if in.RecentEvents != nil {
+		out.RecentEvents = make([]ScalingEvent, len(in.RecentEvents))
+		for i := range in.RecentEvents {
+			in.RecentEvents[i].DeepCopyInto(&out.RecentEvents[i])
+		}
+	}
 }
 
 // DeepCopy returns a deep copy of the receiver.
@@ -80,6 +98,28 @@ func (in *HPAReplicaAlertStatus) DeepCopy() *HPAReplicaAlertStatus {
 		return nil
 	}
 	out := new(HPAReplicaAlertStatus)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyInto copies the receiver into the provided out parameter.
+func (in *ScalingEvent) DeepCopyInto(out *ScalingEvent) {
+	*out = *in
+	if in.PreviousReplicas != nil {
+		out.PreviousReplicas = new(int32)
+		*out.PreviousReplicas = *in.PreviousReplicas
+	}
+	if in.LastScaleTime != nil {
+		out.LastScaleTime = in.LastScaleTime.DeepCopy()
+	}
+}
+
+// DeepCopy creates a deep copy of the ScalingEvent.
+func (in *ScalingEvent) DeepCopy() *ScalingEvent {
+	if in == nil {
+		return nil
+	}
+	out := new(ScalingEvent)
 	in.DeepCopyInto(out)
 	return out
 }

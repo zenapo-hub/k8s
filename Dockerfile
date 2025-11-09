@@ -1,8 +1,10 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.4
 
-FROM --platform=$BUILDPLATFORM golang:1.24 as builder
+FROM golang:1.24 AS builder
 ARG TARGETOS
 ARG TARGETARCH
+ARG TARGETVARIANT
+ARG TARGET_BINARY=hpalogger
 WORKDIR /workspace
 
 COPY go.mod go.sum ./
@@ -10,8 +12,11 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /workspace/bin/hpalogger ./cmd/hpalogger
+ENV CGO_ENABLED=0
+RUN GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
+    go build -o "/workspace/bin/${TARGET_BINARY}" "./cmd/${TARGET_BINARY}"
 
 FROM gcr.io/distroless/base-debian12
-COPY --from=builder /workspace/bin/hpalogger /usr/local/bin/hpalogger
-ENTRYPOINT ["/usr/local/bin/hpalogger"]
+ARG TARGET_BINARY=hpalogger
+COPY --from=builder "/workspace/bin/${TARGET_BINARY}" "/usr/local/bin/app"
+ENTRYPOINT ["/usr/local/bin/app"]

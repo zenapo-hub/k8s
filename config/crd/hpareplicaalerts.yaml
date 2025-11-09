@@ -49,5 +49,29 @@ spec:
                 lastTransitionTime:
                   type: string
                   format: date-time
+                recentEvents:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      recordedAt:
+                        type: string
+                        format: date-time
+                      previousReplicas:
+                        type: integer
+                        format: int32
+                      currentReplicas:
+                        type: integer
+                        format: int32
+                      desiredReplicas:
+                        type: integer
+                        format: int32
+                      direction:
+                        type: string
+                      lastScaleTime:
+                        type: string
+                        format: date-time
+                      conditionSummary:
+                        type: string
       subresources:
         status: {}

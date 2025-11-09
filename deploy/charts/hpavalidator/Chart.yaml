@@ -1,0 +1,5 @@
+apiVersion: v2
+name: hpavalidator
+description: HPA status checker that reads HPAReplicaAlert CRs
+version: 0.1.0
+appVersion: 0.1.0
